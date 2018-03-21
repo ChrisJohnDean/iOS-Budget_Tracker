@@ -51,7 +51,7 @@ class SQLiteDatabase: NSObject {
   func closeDatabase() {
     let status = sqlite3_close(database)
     if status != SQLITE_OK {
-      print("error closing database")
+      print("error closing database") 
     }
   }
   
@@ -66,12 +66,20 @@ class SQLiteDatabase: NSObject {
     
     var rows = [[String: String]]()
     
+
+    
+    
     while(stepStatus == SQLITE_ROW) {
       var row = [String: String]()
       
       for i in 0..<numberOfColumns {
         let columnName = String(cString: sqlite3_column_name(queryStatement, Int32(i)))
-        let columnText = String(cString: sqlite3_column_text(queryStatement, Int32(i)))
+        
+        let value = sqlite3_column_text(queryStatement, Int32(i))
+        var columnText = ""
+        if let value = value {
+          columnText = String(cString: value)
+        }
         row[columnName] = columnText
       }
       

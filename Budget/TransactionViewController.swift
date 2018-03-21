@@ -28,10 +28,12 @@ class TransactionViewControllerclass: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    updateRemainingLabel()
+    amountRemainingLabel.text = dataManager.dailyBudget.stringValue
+    //updateRemainingLabel()
   }
   
   func updateRemainingLabel() {
+    
     amountRemainingLabel.text = "$\(dataManager.budgetRemainingToday().stringValue)"
   }
   
@@ -40,6 +42,8 @@ class TransactionViewControllerclass: UIViewController {
       print("User needs to enter an amount")
       return
     }
+    
+    //startDatePicker.addTarget(self, action:  #selector(popoverTableViewController.datePickerValueChanged(_:)), for: UIControlEvents.valueChanged)
     
     let amount = NSDecimalNumber(string:amountString)
     let time = datePicker.date

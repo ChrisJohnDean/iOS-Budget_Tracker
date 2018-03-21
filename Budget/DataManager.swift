@@ -17,18 +17,113 @@
 // THE SOFTWARE.
 
 import UIKit
+import SQLite3
 
 class DataManager: NSObject {
 
+  
   let dailyBudget = NSDecimalNumber(string: "10.00")
   var spent = NSDecimalNumber(string: "0.00")
   
+  
   func budgetRemainingToday() -> NSDecimalNumber {
-    return dailyBudget.subtracting(spent)
-  }
+    var totalSpentTodayArray = [[String:String]]()
+    
+    let database = SQLiteDatabase()
+    
+    do {
+      try database.openDatabase(name: "budget.db")
+    }
+    catch _{
+      print("Error opening database in budgetRemainingToday() function")
+    }
+    
+    let budgetRemainingQuery = """
+      SELECT SUM(amount) AS total FROM transactions
+    """
+    
+    do {
+      try totalSpentTodayArray = database.execute(complexQuery: budgetRemainingQuery)
+    }
+    catch _{
+      print("Error selecting sum of transactions")
+    }
+    
+    if let total = totalSpentTodayArray.first {
+      let sumString = total["total"]
+      let sum = NSDecimalNumber(string: sumString)
+      return dailyBudget.subtracting(sum)
+    } else {
+      return dailyBudget
+    }
+    
+    
+    
+  } 
   
   func spend(amount: NSDecimalNumber, time: Date) {
     spent = spent.adding(amount)
+    
+    let amount = amount.intValue
+    let timestamp = Int(time.timeIntervalSince1970)
+    
+    let database = SQLiteDatabase()
+    do {
+      try database.openDatabase(name: "budget.db")
+    }
+    catch _{
+      print("Error opening database in spend function")
+    }
+    
+    let insertTransaction = """
+      INSERT INTO transactions (amount, timestamp)
+    VALUES (\(amount), \(timestamp));
+    """
+    
+    do {
+      try database.execute(simpleQuery: insertTransaction)
+    }
+    catch _{
+      print("Error inserting transactions")
+    }
+  }
+  
+  func setupData() {
+    let database = SQLiteDatabase()
+    
+    do {
+      try database.openDatabase(name: "budget.db")
+    }
+    catch _{
+      print("Error opening database in DataManager class")
+    }
+    
+    let createTransactions = """
+      CREATE TABLE transactions (
+        id INTEGER PRIMARY KEY,
+        amount INTEGER,
+        timestamp INTEGER
+      );
+    """
+    do {
+      try database.execute(simpleQuery: createTransactions)
+    }
+    catch _{
+      print("Error creating transactions query")
+    }
+    
+    let createDailyBudgets = """
+      CREATE TABLE daily_budgets (
+        id INTEGER PRIMARY KEY,
+        amount INTEGER
+      );
+    """
+    do {
+      try database.execute(simpleQuery: createDailyBudgets)
+    }
+    catch _{
+      print("Error creating daily_budgets query")
+    }
   }
   
 }
